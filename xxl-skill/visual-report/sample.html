@@ -1,0 +1,1684 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenClaw vs Claude Code — 深度对比分析报告</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+        html { height: 100%; scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.75;
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .page-container {
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            min-height: 0;
+        }
+
+        .main-body {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            overflow: hidden;
+            background: #ffffff;
+            max-width: 1260px;
+            width: 100%;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .sidebar {
+            width: 272px;
+            background: #fafbfc;
+            border-right: 1px solid #e2e8f0;
+            padding: 20px 0;
+            overflow-x: hidden;
+            overflow-y: auto;
+            flex-shrink: 0;
+            align-self: stretch;
+        }
+
+        .sidebar-label {
+            padding: 0 20px;
+            margin-bottom: 16px;
+            font-size: 11px;
+            font-weight: 700;
+            color: #94a3b8;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .toc { list-style: none; padding: 0 12px; }
+        .toc li { margin: 2px 0; }
+
+        .toc a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 7px 12px;
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border-left: 2px solid transparent;
+            line-height: 1.4;
+        }
+
+        .toc a:hover { background: #f1f5f9; color: #334155; }
+
+        .toc .toc-h1 {
+            font-weight: 700;
+            font-size: 13px;
+            color: #334155;
+            margin-top: 12px;
+        }
+
+        .toc .toc-h1:first-child { margin-top: 0; }
+
+        .toc .toc-h2 {
+            padding-left: 24px;
+            font-size: 12.5px;
+            font-weight: 500;
+        }
+
+        .toc a.active {
+            background: linear-gradient(135deg, #eff6ff 0%, #f0f4ff 100%);
+            color: #2563eb;
+            border-left-color: #2563eb;
+            font-weight: 600;
+        }
+
+        .toc-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            background: #e2e8f0;
+            color: #64748b;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+        }
+
+        .toc a.active .toc-num {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        .content-wrapper {
+            flex: 1;
+            min-width: 0;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 44px 56px 80px;
+            background: #ffffff;
+        }
+
+        .main-content {
+            max-width: 50rem;
+            margin: 0 auto;
+        }
+
+        section { scroll-margin-top: 24px; }
+
+        h2 {
+            font-size: 1.375rem;
+            color: #0f172a;
+            margin-top: 56px;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e2e8f0;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        section:first-of-type h2 { margin-top: 0; }
+
+        h3 {
+            font-size: 1.125rem;
+            color: #1e293b;
+            margin-top: 36px;
+            margin-bottom: 16px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        h4 {
+            font-size: 1rem;
+            color: #334155;
+            margin-top: 28px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: #475569;
+            font-size: 15px;
+            line-height: 1.8;
+        }
+
+        ul, ol { margin-bottom: 20px; padding-left: 24px; }
+
+        li {
+            margin-bottom: 8px;
+            color: #475569;
+            font-size: 15px;
+            line-height: 1.7;
+        }
+
+        li::marker { color: #94a3b8; }
+
+        strong { color: #0f172a; font-weight: 700; }
+
+        :not(pre) > code {
+            background: #f1f5f9;
+            color: #6366f1;
+            padding: 2px 7px;
+            border-radius: 5px;
+            font-size: 13.5px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+            border: 1px solid #e2e8f0;
+        }
+
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+            margin: 48px 0;
+        }
+
+        .code-window {
+            margin: 24px 0;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #1e293b;
+            background: #0f172a;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+        }
+
+        .code-header {
+            background: linear-gradient(180deg, #1e293b 0%, #1a2332 100%);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .code-dots { display: flex; gap: 7px; }
+        .code-dot { width: 12px; height: 12px; border-radius: 50%; }
+        .code-dot.red { background: #ef4444; }
+        .code-dot.yellow { background: #eab308; }
+        .code-dot.green { background: #22c55e; }
+
+        .code-title {
+            flex: 1;
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            font-weight: 500;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .code-lang {
+            color: #64748b;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: rgba(255,255,255,0.06);
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+
+        .code-content {
+            background: #0f172a;
+            padding: 20px 24px;
+            overflow-x: auto;
+        }
+
+        .code-content pre {
+            margin: 0;
+            background: transparent;
+            color: #e2e8f0;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13.5px;
+            line-height: 1.75;
+            tab-size: 4;
+        }
+
+        .code-content code {
+            font-family: 'JetBrains Mono', monospace;
+            background: transparent;
+            color: inherit;
+            padding: 0;
+            border: none;
+        }
+
+        .tk-kw { color: #c084fc; }
+        .tk-fn { color: #60a5fa; }
+        .tk-str { color: #34d399; }
+        .tk-cm { color: #64748b; font-style: italic; }
+        .tk-num { color: #fb923c; }
+        .tk-op { color: #94a3b8; }
+        .tk-dec { color: #f472b6; }
+        .tk-type { color: #38bdf8; }
+        .tk-const { color: #fbbf24; }
+
+        .diagram-container {
+            background: #ffffff;
+            padding: 28px 32px 36px;
+            border-radius: 14px;
+            margin: 32px 0;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04), 0 8px 32px rgba(15, 23, 42, 0.06);
+            position: relative;
+            overflow: visible;
+            min-width: 0;
+        }
+
+        .diagram-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            border-radius: 14px 14px 0 0;
+        }
+
+        .diagram-title {
+            margin-top: 4px;
+            margin-bottom: 24px;
+            margin-right: 100px;
+            color: #0f172a;
+            text-align: center;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        @media (max-width: 600px) {
+            .diagram-title { margin-right: 0; padding: 0 12px; }
+        }
+
+        .diagram-zoom-btn {
+            position: absolute;
+            top: 22px;
+            right: 20px;
+            z-index: 2;
+            padding: 7px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #2563eb;
+            background: linear-gradient(135deg, #eff6ff 0%, #f0f4ff 100%);
+            border: 1px solid #bfdbfe;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+            transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+        }
+
+        .diagram-zoom-btn:hover {
+            background: #dbeafe;
+            border-color: #93c5fd;
+            transform: translateY(-1px);
+        }
+
+        .diagram-zoom-btn:focus-visible {
+            outline: 2px solid #2563eb;
+            outline-offset: 2px;
+        }
+
+        .diagram-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        .diagram-modal.is-open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .diagram-modal-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            backdrop-filter: blur(4px);
+        }
+
+        .diagram-modal-panel {
+            position: relative;
+            z-index: 1;
+            width: min(96vw, 1400px);
+            max-height: min(92vh, 900px);
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.35);
+            border: 1px solid #e2e8f0;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .diagram-modal-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+            border-radius: 14px 14px 0 0;
+        }
+
+        .diagram-modal-header {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 16px 18px 12px;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .diagram-modal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .diagram-modal-close {
+            flex-shrink: 0;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #64748b;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .diagram-modal-close:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        .diagram-modal-body {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: 20px 24px 28px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .diagram-modal-body svg {
+            max-width: 100%;
+            width: auto !important;
+            height: auto !important;
+            display: block;
+            background: transparent;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            overflow-x: auto;
+            overflow-y: visible;
+            min-width: 0;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .mermaid svg {
+            max-width: 100%;
+            width: auto !important;
+            height: auto !important;
+            filter: drop-shadow(0 1px 3px rgba(15, 23, 42, 0.06));
+        }
+
+        .mermaid .nodeLabel {
+            overflow: visible !important;
+            white-space: nowrap !important;
+        }
+        .mermaid foreignObject {
+            overflow: visible !important;
+        }
+        .mermaid foreignObject > div {
+            overflow: visible !important;
+            white-space: nowrap !important;
+        }
+        .mermaid .node rect,
+        .mermaid .node polygon,
+        .mermaid .node circle,
+        .mermaid .node ellipse {
+            overflow: visible !important;
+        }
+        .mermaid .cluster rect {
+            overflow: visible !important;
+        }
+        .mermaid span.nodeLabel {
+            display: inline-block !important;
+            padding-right: 8px !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 24px 0;
+            background: #ffffff;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 11px 18px;
+            text-align: left;
+            font-weight: 700;
+            color: #334155;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        td {
+            padding: 13px 18px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #475569;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        .callout {
+            border-radius: 10px;
+            padding: 16px 20px;
+            margin: 24px 0;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .callout-icon {
+            flex-shrink: 0;
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 1px;
+        }
+
+        .callout.info { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; }
+        .callout.info .callout-icon { background: #3b82f6; color: white; }
+        .callout.warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+        .callout.warning .callout-icon { background: #f59e0b; color: white; }
+        .callout.success { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+        .callout.success .callout-icon { background: #22c55e; color: white; }
+        .callout.danger { background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; }
+        .callout.danger .callout-icon { background: #ef4444; color: white; }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 100px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+        }
+
+        .tag-blue { background: #dbeafe; color: #1d4ed8; }
+        .tag-green { background: #dcfce7; color: #16a34a; }
+        .tag-purple { background: #f3e8ff; color: #7c3aed; }
+        .tag-orange { background: #ffedd5; color: #c2410c; }
+        .tag-gray { background: #f1f5f9; color: #475569; }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .metric-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            transform: translateY(-1px);
+        }
+
+        .metric-value {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 32px;
+            right: 32px;
+            width: 40px;
+            height: 40px;
+            background: #0f172a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 50;
+        }
+
+        .back-to-top.visible { opacity: 1; transform: translateY(0); }
+
+        .back-to-top:hover {
+            background: #1e293b;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+        }
+
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .step-list {
+            list-style: none;
+            padding: 0;
+            counter-reset: step-counter;
+        }
+
+        .step-list li {
+            counter-increment: step-counter;
+            position: relative;
+            padding-left: 48px;
+            padding-bottom: 24px;
+            margin-bottom: 0;
+            border-left: 2px solid #e2e8f0;
+            margin-left: 14px;
+        }
+
+        .step-list li:last-child {
+            border-left-color: transparent;
+            padding-bottom: 0;
+        }
+
+        .step-list li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: -15px;
+            top: 0;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        @media (max-width: 900px) {
+            html, body { height: auto; overflow: auto; }
+            .page-container { height: auto; min-height: 100vh; }
+            .main-body {
+                flex-direction: column; min-height: auto; overflow: visible;
+                border-left: none; border-right: none;
+            }
+            .sidebar {
+                width: 100%; position: sticky; top: 0; z-index: 20;
+                max-height: min(40vh, 280px);
+                border-right: none; border-bottom: 1px solid #e2e8f0;
+                box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            }
+            .content-wrapper { overflow: visible; padding: 24px 20px 48px; }
+            .metrics { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 1200px) and (min-width: 901px) {
+            .sidebar { width: 240px; }
+            .content-wrapper { padding: 36px 36px 64px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="main-body">
+            <!-- Sidebar -->
+            <nav class="sidebar">
+                <div class="sidebar-label">目录导航</div>
+                <ul class="toc">
+                    <li><a href="#overview" class="toc-h1"><span class="toc-num">1</span> 概述与简介</a></li>
+                    <li><a href="#architecture" class="toc-h1"><span class="toc-num">2</span> 架构对比</a></li>
+                    <li><a href="#features" class="toc-h1"><span class="toc-num">3</span> 功能对比</a></li>
+                    <li><a href="#tools" class="toc-h1"><span class="toc-num">4</span> 工具生态</a></li>
+                    <li><a href="#workflow" class="toc-h1"><span class="toc-num">5</span> 工作流对比</a></li>
+                    <li><a href="#extensibility" class="toc-h1"><span class="toc-num">6</span> 扩展性</a></li>
+                    <li><a href="#models" class="toc-h1"><span class="toc-num">7</span> 模型支持</a></li>
+                    <li><a href="#usecases" class="toc-h1"><span class="toc-num">8</span> 适用场景</a></li>
+                    <li><a href="#proscons" class="toc-h1"><span class="toc-num">9</span> 优劣势总结</a></li>
+                    <li><a href="#conclusion" class="toc-h1"><span class="toc-num">10</span> 结论与建议</a></li>
+                </ul>
+            </nav>
+
+            <!-- Content -->
+            <div class="content-wrapper">
+                <main class="main-content">
+                    <h1 style="font-size: 1.75rem; color: #0f172a; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 8px; padding-bottom: 0; border-bottom: none;">OpenClaw vs Claude Code — 深度对比分析</h1>
+                    <p style="color: #94a3b8; font-size: 14px; margin-bottom: 32px; padding-bottom: 16px; border-bottom: 1px solid #e2e8f0;">两款主流 AI 编程助手的架构、功能与生态全方位对比 · 2026 年 4 月</p>
+
+                    <!-- Section 1: Overview -->
+                    <section id="overview">
+                        <h2>1. 概述与简介</h2>
+                        <p><strong>OpenClaw</strong> 是一个开源的 AI 编程助手框架，定位为社区驱动的命令行智能开发工具。它采用插件化架构，支持接入多种大语言模型（LLM），为开发者提供灵活可定制的编程辅助体验。</p>
+                        <p><strong>Claude Code</strong> 是 Anthropic 官方推出的 CLI 编程工具，深度集成 Claude 系列模型。它是一个交互式 Agent，能够帮助用户完成从代码编写、调试、重构到 Git 操作等全流程软件工程任务。</p>
+
+                        <div class="metrics">
+                            <div class="metric-card">
+                                <div class="metric-value">OSS</div>
+                                <div class="metric-label">OpenClaw 开源协议</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">商业</div>
+                                <div class="metric-label">Claude Code 许可</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">多模型</div>
+                                <div class="metric-label">OpenClaw 模型支持</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-value">Claude</div>
+                                <div class="metric-label">Claude Code 模型</div>
+                            </div>
+                        </div>
+
+                        <div class="callout info">
+                            <div class="callout-icon">i</div>
+                            <div><strong>背景说明：</strong>OpenClaw 代表了社区对开放式 AI 编程助手的探索方向，而 Claude Code 则是商业公司 Anthropic 推出的官方产品。两者在设计理念、技术栈和目标用户上存在显著差异。</div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 2: Architecture -->
+                    <section id="architecture">
+                        <h2>2. 架构对比</h2>
+                        <p>两款工具在架构设计上有着根本性的差异。OpenClaw 采用模块化、可插拔的架构，而 Claude Code 则是一个紧密集成的端到端解决方案。</p>
+
+                        <div class="diagram-container">
+                            <div class="diagram-title">OpenClaw 架构概览</div>
+                            <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontFamily': 'PingFang SC, Microsoft YaHei, Noto Sans SC, Inter, system-ui, sans-serif',
+    'fontSize': '16px',
+    'primaryColor': '#EDE9FE',
+    'primaryTextColor': '#4C1D95',
+    'primaryBorderColor': '#8B5CF6',
+    'secondaryColor': '#FEF3C7',
+    'secondaryTextColor': '#92400E',
+    'secondaryBorderColor': '#F59E0B',
+    'tertiaryColor': '#DBEAFE',
+    'tertiaryTextColor': '#1E40AF',
+    'tertiaryBorderColor': '#3B82F6',
+    'lineColor': '#94A3B8',
+    'textColor': '#0f172a',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#94A3B8',
+    'clusterBkg': '#F8FAFC',
+    'clusterBorder': '#CBD5E1',
+    'titleColor': '#1e293b',
+    'edgeLabelBackground': '#F1F5F9'
+}}}%%
+flowchart TD
+    subgraph UI[" 用户界面层 "]
+        CLI[" CLI 终端 "]
+        WEB[" Web UI "]
+        IDE[" IDE 插件 "]
+    end
+
+    subgraph CORE[" 核心引擎 "]
+        ROUTER[" 模型路由器 "]
+        AGENT[" Agent 调度器 "]
+        CTX[" 上下文管理 "]
+    end
+
+    subgraph PLUGINS[" 插件系统 "]
+        P1[" 文件操作插件 "]
+        P2[" Git 插件 "]
+        P3[" 测试运行插件 "]
+        P4[" 自定义插件 "]
+    end
+
+    subgraph MODELS[" 模型适配层 "]
+        M1[" OpenAI API "]
+        M2[" Claude API "]
+        M3[" 本地模型 "]
+        M4[" 其他 LLM "]
+    end
+
+    CLI --&gt; ROUTER
+    WEB --&gt; ROUTER
+    IDE --&gt; ROUTER
+    ROUTER --&gt; AGENT
+    AGENT --&gt; CTX
+    AGENT --&gt; P1
+    AGENT --&gt; P2
+    AGENT --&gt; P3
+    AGENT --&gt; P4
+    ROUTER --&gt; M1
+    ROUTER --&gt; M2
+    ROUTER --&gt; M3
+    ROUTER --&gt; M4
+
+    style UI fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style CORE fill:#EDE9FE,stroke:#8B5CF6,color:#4C1D95
+    style PLUGINS fill:#FEF3C7,stroke:#F59E0B,color:#92400E
+    style MODELS fill:#ECFDF5,stroke:#10B981,color:#065F46
+                            </div>
+                        </div>
+
+                        <div class="diagram-container">
+                            <div class="diagram-title">Claude Code 架构概览</div>
+                            <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontFamily': 'PingFang SC, Microsoft YaHei, Noto Sans SC, Inter, system-ui, sans-serif',
+    'fontSize': '16px',
+    'primaryColor': '#EDE9FE',
+    'primaryTextColor': '#4C1D95',
+    'primaryBorderColor': '#8B5CF6',
+    'secondaryColor': '#FEF3C7',
+    'secondaryTextColor': '#92400E',
+    'secondaryBorderColor': '#F59E0B',
+    'tertiaryColor': '#DBEAFE',
+    'tertiaryTextColor': '#1E40AF',
+    'tertiaryBorderColor': '#3B82F6',
+    'lineColor': '#94A3B8',
+    'textColor': '#0f172a',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#94A3B8',
+    'clusterBkg': '#F8FAFC',
+    'clusterBorder': '#CBD5E1',
+    'titleColor': '#1e293b',
+    'edgeLabelBackground': '#F1F5F9'
+}}}%%
+flowchart TD
+    subgraph ENTRY[" 入口层 "]
+        CCLI[" CLI REPL "]
+        VSCODE[" VSCode 集成 "]
+        SDK[" Agent SDK "]
+    end
+
+    subgraph ENGINE[" Claude 引擎 "]
+        CONV[" 对话管理器 "]
+        TOOL[" 工具调度系统 "]
+        PERM[" 权限控制 "]
+        MEM[" 记忆系统 "]
+    end
+
+    subgraph TOOLS[" 内置工具集 "]
+        T1[" Read / Write / Edit "]
+        T2[" Bash 终端 "]
+        T3[" Glob / Grep 搜索 "]
+        T4[" Agent 子进程 "]
+        T5[" MCP 服务器 "]
+    end
+
+    subgraph API[" Anthropic API "]
+        CLAUDE[" Claude Opus / Sonnet "]
+    end
+
+    CCLI --&gt; CONV
+    VSCODE --&gt; CONV
+    SDK --&gt; CONV
+    CONV --&gt; TOOL
+    CONV --&gt; PERM
+    CONV --&gt; MEM
+    TOOL --&gt; T1
+    TOOL --&gt; T2
+    TOOL --&gt; T3
+    TOOL --&gt; T4
+    TOOL --&gt; T5
+    CONV --&gt; CLAUDE
+
+    style ENTRY fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style ENGINE fill:#FCE7F3,stroke:#DB2777,color:#9D174D
+    style TOOLS fill:#FEF3C7,stroke:#F59E0B,color:#92400E
+    style API fill:#ECFDF5,stroke:#10B981,color:#065F46
+                            </div>
+                        </div>
+
+                        <div class="callout warning">
+                            <div class="callout-icon">!</div>
+                            <div><strong>架构差异核心：</strong>OpenClaw 的模型路由器支持动态切换后端 LLM，而 Claude Code 与 Anthropic API 深度绑定。这意味着 OpenClaw 更灵活但需要自行维护，Claude Code 则开箱即用但锁定在 Claude 生态中。</div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 3: Features -->
+                    <section id="features">
+                        <h2>3. 功能对比</h2>
+                        <p>以下是两款工具在核心功能维度上的详细对比：</p>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>功能维度</th>
+                                    <th>OpenClaw</th>
+                                    <th>Claude Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>文件读写</strong></td>
+                                    <td>通过插件支持</td>
+                                    <td><span class="tag tag-green">内置 Read/Write/Edit</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>代码搜索</strong></td>
+                                    <td>基础 grep 封装</td>
+                                    <td><span class="tag tag-green">Glob + Grep 专用工具</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>终端执行</strong></td>
+                                    <td>Shell 集成</td>
+                                    <td><span class="tag tag-green">沙箱化 Bash 工具</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Git 操作</strong></td>
+                                    <td>插件实现</td>
+                                    <td><span class="tag tag-green">内置 Git 安全协议</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>多模型支持</strong></td>
+                                    <td><span class="tag tag-green">多家 LLM 提供商</span></td>
+                                    <td>仅 Claude 系列</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>离线模式</strong></td>
+                                    <td><span class="tag tag-green">支持本地模型</span></td>
+                                    <td>需要网络连接</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>权限系统</strong></td>
+                                    <td>基础文件权限</td>
+                                    <td><span class="tag tag-green">细粒度工具权限</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>子 Agent</strong></td>
+                                    <td>部分支持</td>
+                                    <td><span class="tag tag-green">多类型专用 Agent</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>上下文管理</strong></td>
+                                    <td>手动管理</td>
+                                    <td><span class="tag tag-green">自动压缩 + 记忆</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>IDE 集成</strong></td>
+                                    <td><span class="tag tag-blue">多 IDE 插件</span></td>
+                                    <td><span class="tag tag-blue">VSCode 原生扩展</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="callout success">
+                            <div class="callout-icon">&#x2713;</div>
+                            <div><strong>各有所长：</strong>OpenClaw 在模型灵活性和离线能力上占优，Claude Code 在工具集成深度和开箱即用体验上更胜一筹。选择取决于你的具体需求。</div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 4: Tools -->
+                    <section id="tools">
+                        <h2>4. 工具生态</h2>
+                        <p>工具生态是衡量 AI 编程助手实用性的关键指标。两者在工具设计理念上截然不同。</p>
+
+                        <h3>OpenClaw 工具体系</h3>
+                        <p>OpenClaw 采用插件化的工具体系，通过社区贡献的插件来扩展功能：</p>
+
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span class="code-dot red"></span>
+                                    <span class="code-dot yellow"></span>
+                                    <span class="code-dot green"></span>
+                                </div>
+                                <span class="code-title">openclaw.config.yaml</span>
+                                <span class="code-lang">yaml</span>
+                            </div>
+                            <div class="code-content">
+                                <pre><code><span class="tk-cm"># OpenClaw 插件配置示例</span>
+<span class="tk-kw">plugins</span><span class="tk-op">:</span>
+  <span class="tk-op">-</span> <span class="tk-kw">name</span><span class="tk-op">:</span> <span class="tk-str">file-operations</span>
+    <span class="tk-kw">version</span><span class="tk-op">:</span> <span class="tk-str">"2.1.0"</span>
+    <span class="tk-kw">permissions</span><span class="tk-op">:</span> <span class="tk-op">[</span><span class="tk-str">read</span><span class="tk-op">,</span> <span class="tk-str">write</span><span class="tk-op">]</span>
+
+  <span class="tk-op">-</span> <span class="tk-kw">name</span><span class="tk-op">:</span> <span class="tk-str">git-integration</span>
+    <span class="tk-kw">version</span><span class="tk-op">:</span> <span class="tk-str">"1.5.3"</span>
+    <span class="tk-kw">auto_commit</span><span class="tk-op">:</span> <span class="tk-const">false</span>
+
+  <span class="tk-op">-</span> <span class="tk-kw">name</span><span class="tk-op">:</span> <span class="tk-str">test-runner</span>
+    <span class="tk-kw">frameworks</span><span class="tk-op">:</span> <span class="tk-op">[</span><span class="tk-str">jest</span><span class="tk-op">,</span> <span class="tk-str">pytest</span><span class="tk-op">,</span> <span class="tk-str">go-test</span><span class="tk-op">]</span>
+
+<span class="tk-kw">models</span><span class="tk-op">:</span>
+  <span class="tk-kw">default</span><span class="tk-op">:</span> <span class="tk-str">"gpt-4o"</span>
+  <span class="tk-kw">fallback</span><span class="tk-op">:</span> <span class="tk-str">"claude-sonnet-4-6"</span>
+  <span class="tk-kw">local</span><span class="tk-op">:</span> <span class="tk-str">"ollama/codellama"</span></code></pre>
+                            </div>
+                        </div>
+
+                        <h3>Claude Code 工具体系</h3>
+                        <p>Claude Code 内置了一套精心设计的专用工具，每个工具都有明确的职责边界：</p>
+
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span class="code-dot red"></span>
+                                    <span class="code-dot yellow"></span>
+                                    <span class="code-dot green"></span>
+                                </div>
+                                <span class="code-title">claude-code-tools.ts</span>
+                                <span class="code-lang">typescript</span>
+                            </div>
+                            <div class="code-content">
+                                <pre><code><span class="tk-cm">// Claude Code 内置工具一览</span>
+<span class="tk-kw">const</span> builtinTools <span class="tk-op">=</span> {
+  <span class="tk-cm">// 文件操作</span>
+  <span class="tk-fn">Read</span><span class="tk-op">:</span>     <span class="tk-str">"读取文件，支持图片和 PDF"</span>,
+  <span class="tk-fn">Write</span><span class="tk-op">:</span>    <span class="tk-str">"创建或完整重写文件"</span>,
+  <span class="tk-fn">Edit</span><span class="tk-op">:</span>     <span class="tk-str">"精确字符串替换编辑"</span>,
+
+  <span class="tk-cm">// 搜索</span>
+  <span class="tk-fn">Glob</span><span class="tk-op">:</span>     <span class="tk-str">"按模式搜索文件路径"</span>,
+  <span class="tk-fn">Grep</span><span class="tk-op">:</span>     <span class="tk-str">"正则搜索文件内容"</span>,
+
+  <span class="tk-cm">// 执行</span>
+  <span class="tk-fn">Bash</span><span class="tk-op">:</span>     <span class="tk-str">"沙箱化 Shell 命令执行"</span>,
+  <span class="tk-fn">Agent</span><span class="tk-op">:</span>    <span class="tk-str">"启动子 Agent 处理任务"</span>,
+
+  <span class="tk-cm">// 交互</span>
+  <span class="tk-fn">TodoWrite</span><span class="tk-op">:</span> <span class="tk-str">"任务列表管理"</span>,
+  <span class="tk-fn">WebFetch</span><span class="tk-op">:</span>  <span class="tk-str">"网页内容抓取与分析"</span>,
+}<span class="tk-op">;</span></code></pre>
+                            </div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 5: Workflow -->
+                    <section id="workflow">
+                        <h2>5. 工作流对比</h2>
+                        <p>开发者使用两款工具的日常工作流程存在明显差异：</p>
+
+                        <div class="diagram-container">
+                            <div class="diagram-title">开发者工作流对比</div>
+                            <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontFamily': 'PingFang SC, Microsoft YaHei, Noto Sans SC, Inter, system-ui, sans-serif',
+    'fontSize': '16px',
+    'primaryColor': '#EDE9FE',
+    'primaryTextColor': '#4C1D95',
+    'primaryBorderColor': '#8B5CF6',
+    'lineColor': '#94A3B8',
+    'textColor': '#0f172a',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#94A3B8',
+    'clusterBkg': '#F8FAFC',
+    'clusterBorder': '#CBD5E1',
+    'edgeLabelBackground': '#F1F5F9'
+}}}%%
+flowchart LR
+    subgraph OC[" OpenClaw 工作流 "]
+        direction TB
+        A1([" 启动 CLI "]) --&gt; A2[" 选择模型 "]
+        A2 --&gt; A3[" 加载插件 "]
+        A3 --&gt; A4[" 描述需求 "]
+        A4 --&gt; A5{" 需要工具? "}
+        A5 --&gt;|是| A6[" 调用插件 "]
+        A5 --&gt;|否| A7[" 生成代码 "]
+        A6 --&gt; A7
+        A7 --&gt; A8[" 手动应用 "]
+    end
+
+    subgraph CC[" Claude Code 工作流 "]
+        direction TB
+        B1([" 启动 CLI "]) --&gt; B2[" 自动加载上下文 "]
+        B2 --&gt; B3[" 描述需求 "]
+        B3 --&gt; B4[" Agent 规划 "]
+        B4 --&gt; B5[" 调用工具链 "]
+        B5 --&gt; B6[" 自动编辑代码 "]
+        B6 --&gt; B7[" 运行测试验证 "]
+        B7 --&gt; B8([" 提交变更 "])
+    end
+
+    style OC fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style CC fill:#FCE7F3,stroke:#DB2777,color:#9D174D
+                            </div>
+                        </div>
+
+                        <div class="callout info">
+                            <div class="callout-icon">i</div>
+                            <div><strong>关键区别：</strong>Claude Code 具有更强的自主性 — 它能够自动规划、执行工具调用、编辑文件并验证结果。OpenClaw 更倾向于「人在回路中」的模式，需要开发者更多手动干预。</div>
+                        </div>
+
+                        <h3>典型使用示例</h3>
+                        <p>以「修复一个 Bug」为例，看看两者的操作差异：</p>
+
+                        <ol class="step-list">
+                            <li>
+                                <strong>OpenClaw</strong> — 开发者需要先手动定位 Bug 文件，将上下文粘贴到对话中，选择合适的模型生成修复代码，再手动将代码复制回项目。
+                            </li>
+                            <li>
+                                <strong>Claude Code</strong> — 开发者只需描述 Bug 现象，Claude Code 会自动使用 Grep/Glob 搜索相关代码，用 Read 读取文件，通过 Edit 工具直接修改，最后运行 Bash 测试验证。
+                            </li>
+                            <li>
+                                <strong>效率差异</strong> — 对于简单任务两者效率相当，但在需要跨多文件修改的复杂任务上，Claude Code 的自动化工具链优势明显。
+                            </li>
+                        </ol>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 6: Extensibility -->
+                    <section id="extensibility">
+                        <h2>6. 扩展性</h2>
+                        <p>扩展性决定了工具能否适应多样化的开发场景。两者都提供了一定的扩展机制，但方式各不相同。</p>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>扩展机制</th>
+                                    <th>OpenClaw</th>
+                                    <th>Claude Code</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>插件系统</strong></td>
+                                    <td><span class="tag tag-green">核心设计理念</span></td>
+                                    <td><span class="tag tag-purple">Skills 技能系统</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>自定义工具</strong></td>
+                                    <td>编写插件模块</td>
+                                    <td>MCP Server 协议</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Hook 机制</strong></td>
+                                    <td>事件回调系统</td>
+                                    <td><span class="tag tag-green">工具级 Hooks</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>配置规则</strong></td>
+                                    <td>YAML 配置文件</td>
+                                    <td>CLAUDE.md 规则文件</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>社区生态</strong></td>
+                                    <td><span class="tag tag-green">开源社区活跃</span></td>
+                                    <td>官方主导 + 社区贡献</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="code-window">
+                            <div class="code-header">
+                                <div class="code-dots">
+                                    <span class="code-dot red"></span>
+                                    <span class="code-dot yellow"></span>
+                                    <span class="code-dot green"></span>
+                                </div>
+                                <span class="code-title">CLAUDE.md</span>
+                                <span class="code-lang">markdown</span>
+                            </div>
+                            <div class="code-content">
+                                <pre><code><span class="tk-cm"># Claude Code 项目规则配置示例</span>
+
+<span class="tk-cm">## 代码风格</span>
+<span class="tk-op">-</span> 使用 TypeScript strict 模式
+<span class="tk-op">-</span> 函数命名使用 camelCase
+<span class="tk-op">-</span> 组件命名使用 PascalCase
+
+<span class="tk-cm">## 测试规范</span>
+<span class="tk-op">-</span> 每个 PR 必须包含单元测试
+<span class="tk-op">-</span> 使用 vitest 作为测试框架
+<span class="tk-op">-</span> 覆盖率目标 <span class="tk-op">&gt;</span> <span class="tk-num">80</span><span class="tk-op">%</span>
+
+<span class="tk-cm">## Git 工作流</span>
+<span class="tk-op">-</span> 不要 force push 到 main 分支
+<span class="tk-op">-</span> commit message 使用中文
+<span class="tk-op">-</span> 优先创建新 commit 而非 amend</code></pre>
+                            </div>
+                        </div>
+
+                        <div class="callout warning">
+                            <div class="callout-icon">!</div>
+                            <div><strong>MCP 协议：</strong>Claude Code 通过 Model Context Protocol（MCP）支持外部工具集成。这是一个标准化的协议，第三方开发者可以通过编写 MCP Server 来扩展 Claude Code 的能力，如数据库查询、API 调用等。</div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 7: Models -->
+                    <section id="models">
+                        <h2>7. 模型支持</h2>
+                        <p>模型是 AI 编程助手的「大脑」，模型支持的广度和深度直接影响工具的实用性。</p>
+
+                        <div class="diagram-container">
+                            <div class="diagram-title">模型支持对比</div>
+                            <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontFamily': 'PingFang SC, Microsoft YaHei, Noto Sans SC, Inter, system-ui, sans-serif',
+    'fontSize': '16px',
+    'primaryColor': '#EDE9FE',
+    'primaryTextColor': '#4C1D95',
+    'primaryBorderColor': '#8B5CF6',
+    'lineColor': '#94A3B8',
+    'textColor': '#0f172a',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#94A3B8',
+    'clusterBkg': '#F8FAFC',
+    'clusterBorder': '#CBD5E1',
+    'edgeLabelBackground': '#F1F5F9'
+}}}%%
+flowchart TD
+    subgraph OCMODELS[" OpenClaw 模型支持 "]
+        OC_GPT[" GPT-4o / GPT-4 "]
+        OC_CLAUDE[" Claude 系列 "]
+        OC_GEMINI[" Gemini Pro "]
+        OC_LOCAL[" 本地模型 Ollama "]
+        OC_OTHER[" DeepSeek / Qwen "]
+    end
+
+    subgraph CCMODELS[" Claude Code 模型支持 "]
+        CC_OPUS[" Claude Opus 4.6 "]
+        CC_SONNET[" Claude Sonnet 4.6 "]
+        CC_HAIKU[" Claude Haiku 4.5 "]
+    end
+
+    DEV[" 开发者 "] --&gt; OCMODELS
+    DEV --&gt; CCMODELS
+
+    style OCMODELS fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style CCMODELS fill:#FCE7F3,stroke:#DB2777,color:#9D174D
+    style DEV fill:#FEF3C7,stroke:#F59E0B,color:#92400E
+                            </div>
+                        </div>
+
+                        <div class="callout info">
+                            <div class="callout-icon">i</div>
+                            <div><strong>模型策略差异：</strong>OpenClaw 追求「广度」，通过统一接口支持多家模型供应商，开发者可以根据任务需求和成本灵活切换。Claude Code 追求「深度」，与 Claude 模型深度优化，工具调用和推理能力经过专门调优。</div>
+                        </div>
+
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>维度</th>
+                                    <th>OpenClaw 多模型策略</th>
+                                    <th>Claude Code 专一策略</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><strong>成本控制</strong></td>
+                                    <td><span class="tag tag-green">可选低价模型</span></td>
+                                    <td>取决于 Claude 定价</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>工具调用准确度</strong></td>
+                                    <td>因模型而异</td>
+                                    <td><span class="tag tag-green">深度优化</span></td>
+                                </tr>
+                                <tr>
+                                    <td><strong>私有化部署</strong></td>
+                                    <td><span class="tag tag-green">支持本地模型</span></td>
+                                    <td>需 API 连接</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>切换灵活性</strong></td>
+                                    <td><span class="tag tag-green">随时切换</span></td>
+                                    <td>仅 Claude 家族内切换</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 8: Use Cases -->
+                    <section id="usecases">
+                        <h2>8. 适用场景</h2>
+                        <p>不同的项目需求和团队背景下，两款工具各有最佳适用场景。</p>
+
+                        <h3>OpenClaw 最佳场景</h3>
+                        <ul>
+                            <li><strong>多模型需求</strong> — 需要在不同 LLM 之间灵活切换，比较不同模型在特定任务上的表现</li>
+                            <li><strong>预算敏感项目</strong> — 对 API 费用有严格控制，需要使用低成本模型完成日常任务</li>
+                            <li><strong>离线/私有化环境</strong> — 企业内部部署，数据不能外发，需要使用本地模型</li>
+                            <li><strong>深度定制需求</strong> — 需要根据业务场景编写专属插件和工作流</li>
+                            <li><strong>开源社区贡献者</strong> — 希望参与工具开发和改进，贡献代码到社区</li>
+                        </ul>
+
+                        <h3>Claude Code 最佳场景</h3>
+                        <ul>
+                            <li><strong>全栈开发任务</strong> — 需要一个端到端的编程助手，自动处理文件操作、搜索、测试等</li>
+                            <li><strong>复杂代码重构</strong> — 涉及多文件修改的大规模重构，利用 Agent 子进程并行处理</li>
+                            <li><strong>快速原型开发</strong> — 追求开箱即用的极致效率，不想花时间配置环境</li>
+                            <li><strong>团队协作规范</strong> — 通过 CLAUDE.md 统一团队的编码规范和 AI 行为</li>
+                            <li><strong>安全敏感操作</strong> — 需要细粒度的权限控制，确保 AI 不会执行危险操作</li>
+                        </ul>
+
+                        <div class="callout success">
+                            <div class="callout-icon">&#x2713;</div>
+                            <div><strong>实践建议：</strong>很多团队在实际工作中会同时使用两者 — 用 OpenClaw 做模型评估和轻量级任务，用 Claude Code 处理需要深度工具集成的复杂开发任务。</div>
+                        </div>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 9: Pros & Cons -->
+                    <section id="proscons">
+                        <h2>9. 优劣势总结</h2>
+                        <p>综合以上对比，两款工具的优劣势清晰可见：</p>
+
+                        <h3>OpenClaw</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>优势</th>
+                                    <th>劣势</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="tag tag-green">开源免费</span> 社区驱动，代码透明</td>
+                                    <td><span class="tag tag-orange">集成深度</span> 工具链整合不如 Claude Code</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">多模型</span> 灵活切换 LLM 提供商</td>
+                                    <td><span class="tag tag-orange">配置复杂</span> 需要较多手动配置</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">可定制</span> 插件系统高度可扩展</td>
+                                    <td><span class="tag tag-orange">自主性</span> Agent 自动化能力有限</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">本地部署</span> 支持离线和私有化</td>
+                                    <td><span class="tag tag-orange">文档</span> 社区文档质量参差不齐</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <h3>Claude Code</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>优势</th>
+                                    <th>劣势</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="tag tag-green">开箱即用</span> 零配置即可上手</td>
+                                    <td><span class="tag tag-orange">锁定</span> 绑定 Anthropic 生态</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">工具深度</span> 内置工具高度优化</td>
+                                    <td><span class="tag tag-orange">成本</span> 依赖 Claude API 付费</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">安全性</span> 完善的权限控制系统</td>
+                                    <td><span class="tag tag-orange">灵活性</span> 无法使用其他 LLM</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="tag tag-green">自主 Agent</span> 强大的自动化能力</td>
+                                    <td><span class="tag tag-orange">网络依赖</span> 必须连接 API</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <hr>
+
+                    <!-- Section 10: Conclusion -->
+                    <section id="conclusion">
+                        <h2>10. 结论与建议</h2>
+                        <p>OpenClaw 和 Claude Code 代表了 AI 编程助手领域的两种不同发展路线。选择哪个工具，取决于你的具体需求和场景。</p>
+
+                        <div class="diagram-container">
+                            <div class="diagram-title">如何选择适合你的工具</div>
+                            <div class="mermaid">
+%%{init: {'theme': 'base', 'themeVariables': {
+    'fontFamily': 'PingFang SC, Microsoft YaHei, Noto Sans SC, Inter, system-ui, sans-serif',
+    'fontSize': '16px',
+    'primaryColor': '#EDE9FE',
+    'primaryTextColor': '#4C1D95',
+    'primaryBorderColor': '#8B5CF6',
+    'lineColor': '#94A3B8',
+    'textColor': '#0f172a',
+    'mainBkg': '#ffffff',
+    'nodeBorder': '#94A3B8',
+    'clusterBkg': '#F8FAFC',
+    'clusterBorder': '#CBD5E1',
+    'edgeLabelBackground': '#F1F5F9'
+}}}%%
+flowchart TD
+    START([" 你的需求是什么? "]) --&gt; Q1{" 需要多模型支持? "}
+    Q1 --&gt;|是| OC1[" 倾向 OpenClaw "]
+    Q1 --&gt;|否| Q2{" 追求开箱即用? "}
+    Q2 --&gt;|是| CC1[" 倾向 Claude Code "]
+    Q2 --&gt;|否| Q3{" 需要离线部署? "}
+    Q3 --&gt;|是| OC2[" 推荐 OpenClaw "]
+    Q3 --&gt;|否| Q4{" 需要深度自动化? "}
+    Q4 --&gt;|是| CC2[" 推荐 Claude Code "]
+    Q4 --&gt;|否| BOTH[" 两者均可，按需选择 "]
+
+    style START fill:#FEF3C7,stroke:#F59E0B,color:#92400E
+    style OC1 fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style OC2 fill:#DBEAFE,stroke:#3B82F6,color:#1E40AF
+    style CC1 fill:#FCE7F3,stroke:#DB2777,color:#9D174D
+    style CC2 fill:#FCE7F3,stroke:#DB2777,color:#9D174D
+    style BOTH fill:#ECFDF5,stroke:#10B981,color:#065F46
+                            </div>
+                        </div>
+
+                        <h3>最终建议</h3>
+
+                        <ol class="step-list">
+                            <li>
+                                <strong>预算有限或需要多模型探索</strong> — 选择 OpenClaw。它的开源特性和多模型支持让你可以在不同方案间自由切换。
+                            </li>
+                            <li>
+                                <strong>追求效率和深度集成</strong> — 选择 Claude Code。它的内置工具链和自主 Agent 能力可以显著提升复杂任务的开发效率。
+                            </li>
+                            <li>
+                                <strong>企业级部署</strong> — 优先评估 OpenClaw 的私有化方案，辅以 Claude Code 作为云端补充方案。
+                            </li>
+                            <li>
+                                <strong>最佳实践</strong> — 两者并用。用 OpenClaw 做日常轻量级辅助和模型评测，用 Claude Code 处理需要深度工具集成的大型任务。
+                            </li>
+                        </ol>
+
+                        <div class="callout success">
+                            <div class="callout-icon">&#x2713;</div>
+                            <div><strong>总结：</strong>AI 编程助手的选择没有绝对的「最优解」。OpenClaw 以灵活性和开放性见长，Claude Code 以深度集成和自动化取胜。理解各自的优劣势，根据实际场景做出选择，才是最务实的策略。</div>
+                        </div>
+                    </section>
+
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Back to top button -->
+    <button class="back-to-top" id="backToTop" onclick="document.querySelector('.content-wrapper').scrollTo({top: 0, behavior: 'smooth'})">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 15l-6-6-6 6"/>
+        </svg>
+    </button>
+
+    <div id="diagramModal" class="diagram-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="diagramModalTitle">
+        <div class="diagram-modal-backdrop" data-diagram-modal-close></div>
+        <div class="diagram-modal-panel">
+            <div class="diagram-modal-header">
+                <h2 id="diagramModalTitle" class="diagram-modal-title">图表预览</h2>
+                <button type="button" class="diagram-modal-close" id="diagramModalCloseBtn">关闭</button>
+            </div>
+            <div class="diagram-modal-body" id="diagramModalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: false,
+            theme: 'base',
+            themeVariables: {
+                fontFamily: '"PingFang SC", "Microsoft YaHei", "Noto Sans SC", "Inter", system-ui, sans-serif',
+                fontSize: '16px',
+                primaryColor: '#EDE9FE',
+                primaryTextColor: '#4C1D95',
+                primaryBorderColor: '#8B5CF6',
+                secondaryColor: '#FEF3C7',
+                secondaryTextColor: '#92400E',
+                secondaryBorderColor: '#F59E0B',
+                tertiaryColor: '#DBEAFE',
+                tertiaryTextColor: '#1E40AF',
+                tertiaryBorderColor: '#3B82F6',
+                lineColor: '#94A3B8',
+                textColor: '#0f172a',
+                mainBkg: '#ffffff',
+                nodeBorder: '#94A3B8',
+                clusterBkg: '#F8FAFC',
+                clusterBorder: '#CBD5E1',
+                titleColor: '#1e293b',
+                edgeLabelBackground: '#F1F5F9',
+                actorBkg: '#DBEAFE',
+                actorBorder: '#3B82F6',
+                actorTextColor: '#1E40AF',
+                signalColor: '#64748B',
+                signalTextColor: '#0f172a'
+            },
+            flowchart: {
+                curve: 'basis',
+                useMaxWidth: false,
+                htmlLabels: true,
+                padding: 28,
+                nodeSpacing: 60,
+                rankSpacing: 64,
+                diagramPadding: 20
+            },
+            sequence: {
+                useMaxWidth: false,
+                wrap: true,
+                wrapPadding: 20,
+                mirrorActors: false,
+                width: 180,
+                height: 50,
+                boxMargin: 12,
+                boxTextMargin: 8,
+                noteMargin: 16,
+                messageMargin: 40,
+                messageFontSize: 16,
+                noteFontSize: 14,
+                actorFontSize: 16,
+                actorFontWeight: 700
+            }
+        });
+
+        function setupDiagramZoom() {
+            const modal = document.getElementById('diagramModal');
+            const modalBody = document.getElementById('diagramModalBody');
+            const modalTitle = document.getElementById('diagramModalTitle');
+            const closeBtn = document.getElementById('diagramModalCloseBtn');
+
+            function closeModal() {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+                modalBody.innerHTML = '';
+                document.body.style.overflow = '';
+            }
+
+            function openModal(svgEl, titleText) {
+                modalBody.innerHTML = '';
+                const clone = svgEl.cloneNode(true);
+                const oldId = svgEl.getAttribute('id');
+                if (oldId) {
+                    const newId = oldId + '-zoom-' + Date.now();
+                    clone.setAttribute('id', newId);
+                    const esc = oldId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    const idRe = new RegExp('#' + esc + '(?!\\w)', 'g');
+                    document.querySelectorAll('style').forEach(styleEl => {
+                        if (styleEl.getAttribute('data-diagram-zoom-style')) return;
+                        const txt = styleEl.textContent || '';
+                        if (!txt.includes('#' + oldId)) return;
+                        const dup = document.createElement('style');
+                        dup.setAttribute('data-diagram-zoom-style', '1');
+                        dup.textContent = txt.replace(idRe, '#' + newId);
+                        modalBody.appendChild(dup);
+                    });
+                }
+                modalBody.appendChild(clone);
+                modalTitle.textContent = titleText || '图表预览';
+                modal.classList.add('is-open');
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                closeBtn.focus();
+            }
+
+            document.querySelectorAll('.diagram-container').forEach(container => {
+                if (container.querySelector('.diagram-zoom-btn')) return;
+                const mermaidEl = container.querySelector('.mermaid');
+                if (!mermaidEl) return;
+                const titleEl = container.querySelector('.diagram-title');
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'diagram-zoom-btn';
+                btn.textContent = '放大查看';
+                btn.setAttribute('aria-label', '放大查看图表');
+                container.appendChild(btn);
+                btn.addEventListener('click', () => {
+                    const svg = mermaidEl.querySelector('svg');
+                    if (!svg) return;
+                    const t = titleEl ? titleEl.textContent.trim() : '';
+                    openModal(svg, t || '图表预览');
+                });
+            });
+
+            closeBtn.addEventListener('click', closeModal);
+            modal.querySelectorAll('[data-diagram-modal-close]').forEach(el => {
+                el.addEventListener('click', closeModal);
+            });
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape' && modal.classList.contains('is-open')) closeModal();
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await document.fonts.ready;
+
+            try {
+                await mermaid.run({ querySelector: '.mermaid' });
+            } catch (e) {
+                console.error('Mermaid render failed:', e);
+            }
+            setupDiagramZoom();
+
+            const tocLinks = document.querySelectorAll('.toc a');
+            const sections = document.querySelectorAll('section[id]');
+            const contentWrapper = document.querySelector('.content-wrapper');
+            const backToTop = document.getElementById('backToTop');
+
+            tocLinks.forEach(link => {
+                link.addEventListener('click', e => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const target = document.getElementById(targetId);
+                    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                });
+            });
+
+            const observer = new IntersectionObserver(entries => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        tocLinks.forEach(l => l.classList.remove('active'));
+                        const activeLink = document.querySelector(`.toc a[href="#${entry.target.id}"]`);
+                        if (activeLink) activeLink.classList.add('active');
+                    }
+                });
+            }, { root: contentWrapper, rootMargin: '-5% 0px -85% 0px', threshold: 0 });
+
+            sections.forEach(section => observer.observe(section));
+
+            contentWrapper.addEventListener('scroll', () => {
+                backToTop.classList.toggle('visible', contentWrapper.scrollTop > 300);
+            });
+        });
+    </script>
+</body>
+</html>
